@@ -7,15 +7,20 @@ package com.acme.dependencygraph;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertEquals;
@@ -42,6 +47,33 @@ public class AppTest {
     
     @BeforeClass
     public static void setUpClass() {
+        InputStream is = AppTest.class.getResourceAsStream("graph.txt");
+        DataOutputStream dos = null;
+        try {
+            File tmp = File.createTempFile("graph", "txt");
+            byte[] data = new byte[1024];
+            dos = new DataOutputStream(new FileOutputStream(tmp));
+            int len;
+            while ((len = is.read(data)) > 0){
+                dos.write(data, 0, len);
+            }
+            pathToFile = tmp.getAbsolutePath();
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(AppTest.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(AppTest.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                dos.close();
+            } catch (IOException ex) {
+                Logger.getLogger(AppTest.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            try {
+                is.close();
+            } catch (IOException ex) {
+                Logger.getLogger(AppTest.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }        
     }
     
     @AfterClass
@@ -50,9 +82,6 @@ public class AppTest {
     
     @Before
     public void setUp() throws IOException {
-        String current = new java.io.File( "." ).getCanonicalPath();
-        
-        pathToFile = current + File.separatorChar + "graph.txt";
         assertNotNull("Path to source file is null", pathToFile);
         
         entries = new ArrayList<>();
